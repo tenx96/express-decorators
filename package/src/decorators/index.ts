@@ -1,17 +1,13 @@
-import { IErrorMiddleware, IMiddleware } from "../interfaces";
+import { IErrorMiddleware } from "../interfaces";
 import {
   setClassMetadata,
   setMethodMetadata,
-  setMiddlewareMetadata,
+  setErrorMiddlewareData,
   setParamMetadata,
-  setValidationMetadata,
 } from "./meta-helpers";
 import { HTTP_METHOD, PARAM_TYPE } from "./meta-keys";
-import { ClassConstructor } from "class-transformer";
-import { ValidatorOptions } from "class-validator";
 
-
-
+export * from "./generated/middleware";
 //FUNCTION LEVELS
 // HTTP_METHODS ----------------------------------------
 export const post = (path: string): MethodDecorator => {
@@ -38,30 +34,13 @@ export const patch = (path: string): MethodDecorator => {
   };
 };
 
-//FUNCTION + CLASS LEVEL
-export function middleware(...args: IMiddleware[]): Function {
-  return (target: Object, propertyKey?: string | symbol) => {
-    setMiddlewareMetadata(target,args,false, propertyKey,);
-  };
-}
+
 
 export function errMiddleware(...args: IErrorMiddleware[]): Function {
   return (target: Object, propertyKey?: string | symbol) => {
-    setMiddlewareMetadata(target,args,true, propertyKey,);
+    setErrorMiddlewareData(target, args, propertyKey);
   };
 }
-
-
-export function validate(
-  schema: ClassConstructor<any>,
-  options?: ValidatorOptions
-): Function {
-  return (target: Object, propertyKey?: string | symbol) => {
-      setValidationMetadata(target,schema,propertyKey,options)
-  };
-}
-
-
 
 
 

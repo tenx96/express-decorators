@@ -1,11 +1,9 @@
-import { ClassConstructor } from "class-transformer";
-import { ValidatorOptions } from "class-validator";
 import {
   IControllerMetadata,
   IFunctionMetaData,
-  IMiddleware,
   IParamsMetaData,
 } from "../interfaces";
+import { getCustomMiddlewareData } from "./generated/generator";
 import * as META_KEYS from "./meta-keys";
 import { HTTP_METHOD } from "./meta-keys";
 // SETTERS --------------------------------------------------------------------
@@ -42,38 +40,20 @@ export const setMethodMetadata = (
  * @param key
  */
 
-export const setMiddlewareMetadata = (
+export const setErrorMiddlewareData = (
   target: any,
   middlewares: Function[],
-  isError: boolean,
   key?: string | symbol
 ) => {
-  if (isError) {
-    if (key) {
-      Reflect.defineMetadata(
-        META_KEYS.ERROR_MIDDLEWARE_KEY,
-        middlewares,
-        target,
-        key
-      );
-    } else {
-      Reflect.defineMetadata(
-        META_KEYS.ERROR_MIDDLEWARE_KEY,
-        middlewares,
-        target
-      );
-    }
+  if (key) {
+    Reflect.defineMetadata(
+      META_KEYS.ERROR_MIDDLEWARE_KEY,
+      middlewares,
+      target,
+      key
+    );
   } else {
-    if (key) {
-      Reflect.defineMetadata(
-        META_KEYS.MIDDLEWARE_KEY,
-        middlewares,
-        target,
-        key
-      );
-    } else {
-      Reflect.defineMetadata(META_KEYS.MIDDLEWARE_KEY, middlewares, target);
-    }
+    Reflect.defineMetadata(META_KEYS.ERROR_MIDDLEWARE_KEY, middlewares, target);
   }
 };
 
@@ -84,21 +64,6 @@ export const setMiddlewareMetadata = (
  * @param schema
  * @param options
  */
-export const setValidationMetadata = (
-  target: Object,
-  schema: ClassConstructor<any>,
-  key?: string | symbol,
-  options?: ValidatorOptions
-) => {
-  if (key) {
-    // key is undefined in case of Class level validator
-    Reflect.defineMetadata(META_KEYS.VALID_SCHEMA_KEY, schema, target, key);
-    Reflect.defineMetadata(META_KEYS.VALID_OPTIONS_KEY, options, target, key);
-  } else {
-    Reflect.defineMetadata(META_KEYS.VALID_SCHEMA_KEY, schema, target);
-    Reflect.defineMetadata(META_KEYS.VALID_OPTIONS_KEY, options, target);
-  }
-};
 
 /**
  * sets baseUrl in Class Metadata
@@ -143,13 +108,6 @@ export const getMethodMetadata = (target: Object): IFunctionMetaData[] => {
       properyName
     );
 
-    const middlewares =
-      Reflect.getOwnMetadata(
-        META_KEYS.MIDDLEWARE_KEY,
-        prototype,
-        properyName
-      ) || [];
-
     const errorMiddlewares =
       Reflect.getOwnMetadata(
         META_KEYS.ERROR_MIDDLEWARE_KEY,
@@ -157,32 +115,15 @@ export const getMethodMetadata = (target: Object): IFunctionMetaData[] => {
         properyName
       ) || [];
 
-    const vSchema =
-      Reflect.getOwnMetadata(
-        META_KEYS.VALID_SCHEMA_KEY,
-        prototype,
-        properyName
-      ) || undefined;
-
-    const vOptions =
-      Reflect.getOwnMetadata(
-        META_KEYS.VALID_OPTIONS_KEY,
-        prototype,
-        properyName
-      ) || undefined;
+    const customMiddlewares =
+      getCustomMiddlewareData(prototype, properyName) || [];
     data.push({
       method,
       path,
       methodName: properyName,
-      middlewares,
       paramsMetadata: getParamMetaData(prototype, properyName),
       errorMiddlewares,
-      ...(vSchema && {
-        validation: { //set validation only when schema is available
-          schema: vSchema,
-          options: vOptions,
-        },
-      }),
+      customMiddlewares,
     });
   });
 
@@ -244,31 +185,17 @@ export const getClassMetadata = (target: Object): IControllerMetadata => {
   const constructor = Object.getPrototypeOf(target).constructor;
   const baseUrl =
     Reflect.getOwnMetadata(META_KEYS.ROUTER_URL_KEY, constructor) || "/";
-  const middlewares = Reflect.getOwnMetadata(
-    META_KEYS.MIDDLEWARE_KEY,
-    constructor
-  );
+
   const errorMiddlewares = Reflect.getOwnMetadata(
     META_KEYS.ERROR_MIDDLEWARE_KEY,
     constructor
   );
 
-  const vSchema = Reflect.getOwnMetadata(
-    META_KEYS.VALID_SCHEMA_KEY,
-    constructor
-  );
+  const customMiddlewares = getCustomMiddlewareData(target) || [];
 
-  const vOptions = Reflect.getOwnMetadata(
-    META_KEYS.VALID_OPTIONS_KEY,
-    constructor
-  );
   return {
     baseUrl,
-    middlewares: middlewares || [],
     errorMiddlewares: errorMiddlewares || [],
-    ...(vSchema && {validation : {
-      schema : vSchema,
-      options : vOptions
-    }})
+    customMiddlewares,
   };
 };

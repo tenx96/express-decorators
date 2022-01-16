@@ -4,7 +4,9 @@ import {
   getMethodMetadata,
 } from "../decorators/meta-helpers";
 import { IMiddleware, IParamsMetaData } from "../interfaces";
-import { defaultHttpErrorMiddleware, defaultValidationErrorHandler, generateValidationMiddleware } from "../middlewares";
+import {
+  defaultHttpErrorMiddleware,
+} from "../middlewares";
 import { HttpResponse } from "../models";
 
 /**
@@ -13,27 +15,22 @@ import { HttpResponse } from "../models";
  * @returns
  */
 
-export const combineControllers = (controllers: Object[], options? : {
-  skipDefaultHttpErrorMiddleware ?: boolean,
-  skipDefaultValidationErrorMiddleware ?: boolean,
-}) => {
+export const combineControllers = (
+  controllers: Object[],
+  options?: {
+    skipDefaultHttpErrorMiddleware?: boolean;
+  }
+) => {
   const router = Router();
 
   controllers.forEach((item) => {
     router.use(generateRouter(item));
   });
 
-  if(!options || (options && !options.skipDefaultValidationErrorMiddleware)){
-    console.log("Setting default validation error middleware")
-    router.use(defaultValidationErrorHandler)
+// set default http errors | errors of type HttpErrorResponse
+  if (!options || (options && !options.skipDefaultHttpErrorMiddleware)) {
+    router.use(defaultHttpErrorMiddleware);
   }
-
-  if(!options || (options && !options.skipDefaultHttpErrorMiddleware)){
-    console.log("Setting default http error middleware")
-    router.use(defaultHttpErrorMiddleware)
-  }
-
-
 
   return router;
 };
@@ -45,32 +42,40 @@ export const generateRouter = (controller: any) => {
   const classData = getClassMetadata(controller);
 
 
-  if(classData.validation){
-    router.use(generateValidationMiddleware(classData.validation.schema, classData.validation.options))
+  // CURRENT MIDDLEWARE ORDER --> CUSTOM --> VALIDATION --> MIDDLEWARES
+
+  // insert custom middlewares
+  if (classData.customMiddlewares && classData.customMiddlewares.length > 0) {
+    let customMiddlewares = classData.customMiddlewares.map((item) =>
+      item.builder(item.args)
+    );
+    router.use(...customMiddlewares);
   }
 
-  if (classData.middlewares.length != 0) {
-    router.use(...classData.middlewares);
-  }
 
   funcData.forEach((item) => {
     const funcName: any = item.methodName;
-    const validMiddlewares : IMiddleware[] = [];
-    if(item.validation){
-      validMiddlewares.push(generateValidationMiddleware(item.validation.schema, item.validation.options))
+
+    // prepare custom middlewares
+    let customMiddlewares: IMiddleware[] = [];
+    if (item.customMiddlewares && item.customMiddlewares.length > 0) {
+      item.customMiddlewares.forEach((item) => {
+        customMiddlewares.push(item.builder(item.args));
+      });
     }
+
+    // CURRENT MIDDLEWARE ORDER --> CUSTOM --> VALIDATION --> MIDDLEWARES --> ERRORMIDDLEWARES
+    // @INFO Here we call the main controller function
     router[item.method](
       item.path,
-      ...validMiddlewares,
-      ...[item.middlewares],
+      ...customMiddlewares,
       generateRequestHandler(controller[funcName], item.paramsMetadata),
       ...[item.errorMiddlewares]
     );
   });
 
-  
 
-
+  // Class level error middlewares marked with @errMiddleware
   if (classData.errorMiddlewares.length !== 0) {
     router.use(...classData.errorMiddlewares);
   }
@@ -95,15 +100,13 @@ export const generateRequestHandler = (
       const sortedParams = generateSortedParams(req, res, next, paramsIndex);
 
       const controllerValue = controllerFunction(...sortedParams);
-      
-      if(controllerValue instanceof HttpResponse){
+
+      if (controllerValue instanceof HttpResponse) {
         return res.status(controllerValue.status).json(controllerValue.json);
-      }else{
+      } else {
         // return a status 200 and json as returned value by default
         return res.status(200).json(controllerValue);
       }
-
-
     } catch (err) {
       next(err);
     }

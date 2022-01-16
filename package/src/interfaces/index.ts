@@ -1,5 +1,3 @@
-import { ClassConstructor } from "class-transformer";
-import { ValidatorOptions } from "class-validator";
 import { NextFunction, Request, Response } from "express";
 import { HTTP_METHOD } from "../decorators/meta-keys";
 
@@ -15,23 +13,21 @@ export interface IFunctionMetaData {
   method: HTTP_METHOD;
   path: string;
   methodName: string;
-  middlewares: IMiddleware[];
   errorMiddlewares: IErrorMiddleware[];
   paramsMetadata: IParamsMetaData;
-  validation? : {
-    schema : ClassConstructor<any>
-    options ?: ValidatorOptions
-  }
+  customMiddlewares?: {
+    builder: (...args: any[]) => IMiddleware;
+    args: any[];
+  }[];
 }
 
 export interface IControllerMetadata {
   errorMiddlewares: IErrorMiddleware[];
   baseUrl: string;
-  middlewares: IMiddleware[];
-  validation? : {
-    schema : ClassConstructor<any>
-    options ?: ValidatorOptions
-  }
+  customMiddlewares?: {
+    builder: (...args: any[]) => IMiddleware;
+    args: any[];
+  }[];
 }
 
 export type IMiddleware = (
