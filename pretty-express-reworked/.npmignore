@@ -1,0 +1,5 @@
+src
+node_dodules
+dist/tests
+dist/**/*.spec.ts
+demo.ts
