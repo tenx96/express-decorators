@@ -1,9 +1,11 @@
 
 
-export * from "./generators/controller.generator"
+export {combineControllers} from "./generators/controller.generator"
 export * from "./decorators"
-export * from "./decorators/generated/generator"
-export * from "./models"
+export {createMiddlewareDecorator} from "./decorators/generated/generator"
+export {HttpErrorResponse,HttpResponse} from "./models"
+export {IMiddleware, IErrorMiddleware} from "./interfaces"
+
 
 
 
