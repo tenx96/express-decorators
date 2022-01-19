@@ -16,7 +16,7 @@
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "express": "^4.17.1",
-    "express-decorators": "file:../pretty-express-reworked/express-decorators-1.0.0.tgz",
+    "express-decorators": "file:../package",
     "jsonwebtoken": "^8.5.1",
     "reflect-metadata": "^0.1.13",
     "typescript": "^4.3.2"

@@ -1,4 +1,4 @@
-import {get,post, controller} from "../../pretty-express-reworked/dist/index";
+import {get,post, controller} from "express-decorators";
 
 
 
