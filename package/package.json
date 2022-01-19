@@ -1,11 +1,12 @@
 {
-  "name": "express-decorators",
-  "version": "1.4.0",
+  "name": "pretty-express",
+  "version": "2.0.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register src/tests/**/*.test.ts",
+    "unit-test": "mocha -r ts-node/register src/**/*.spec.ts",
     "start": "ts-node src/demo.ts",
     "watch": "nodemon src/demo.ts",
     "build": "tsc",

@@ -15,12 +15,7 @@ export const ROUTER_URL_KEY = "router_url";
 
 // customMiddlewareKey
 export const CUSTOM_MIDDL_LIST_KEY = "custom_middleware_key";
+export const CUSTOM_PARAMETER_LIST_KEY = "custom_parameter_list_key";
 
 // PARAMS
-export enum PARAM_TYPE {
-  BODY,
-  QUERY,
-  PARAMS,
-  FILE,
-  FILES,
-}
+

@@ -1,7 +1,7 @@
 import { IMiddleware } from "../../interfaces";
-import { createMiddlewareDecorator } from "./generator";
+import { createMiddlewareDecorator } from "./methodGenerator";
 
 export const middleware: (...middleware: IMiddleware[]) => any =
-  createMiddlewareDecorator((middlewareArray) => {
+  createMiddlewareDecorator<any>((middlewareArray) => {
     return middlewareArray;
   });

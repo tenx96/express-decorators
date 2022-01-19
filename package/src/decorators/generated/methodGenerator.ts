@@ -1,12 +1,12 @@
 import { IMiddleware } from "../../interfaces/base.interface";
 import * as META_KEYS from "../meta-keys";
-type MiddlewareBuilder = (...args: any[]) => IMiddleware;
+export type IMethodDecorator<T extends any[]> = (args: T) => IMiddleware;
 
 
 // set custom middleware data to handler
-const setCustomMiddlewareData = (
+const setCustomMiddlewareData = <T extends any[]>(
   target: Object,
-  builder: MiddlewareBuilder,
+  builder: IMethodDecorator<T>,
   args: any[],
   propertyKey?: string | symbol
 ) => {
@@ -75,13 +75,13 @@ export const getCustomMiddlewareData = (
 };
 
 export const createMiddlewareDecorator =
-  (middlewareBuilder: MiddlewareBuilder | IMiddleware[]) =>
-  (...args: any[]) => {
+  <T extends any[]>(middlewareBuilder: IMethodDecorator<T> | IMiddleware[]) =>
+  (...args: T) => {
     return (target: Object, propertyKey?: string | symbol) => {
       if (!Array.isArray(middlewareBuilder)) {
         
         // if args is a builder create a middleware with it and push it
-        setCustomMiddlewareData(target, middlewareBuilder, args, propertyKey);
+        setCustomMiddlewareData<T>(target, middlewareBuilder, args, propertyKey);
 
       } else {
         // if args is a list of middlewares push it

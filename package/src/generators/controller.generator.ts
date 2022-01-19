@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
+import { getValueFromObjectKey } from "../helpers/getValueFromObjectKey";
 import {
   getClassMetadata,
   getMethodMetadata,
@@ -69,7 +70,7 @@ export const generateRouter = (controller: any) => {
     router[item.method](
       item.path,
       ...customMiddlewares,
-      generateRequestHandler(controller[funcName], item.paramsMetadata),
+      generateRequestHandler(controller[funcName], item.customParameters),
       ...[item.errorMiddlewares]
     );
   });
@@ -93,11 +94,11 @@ export const generateRouter = (controller: any) => {
  */
 export const generateRequestHandler = (
   controllerFunction: Function,
-  paramsIndex: IParamsMetaData
+  customParams: IParamsMetaData[]
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sortedParams = generateSortedParams(req, res, next, paramsIndex);
+      const sortedParams = generateSortedParams(req, res, next, customParams);
 
       const controllerValue = controllerFunction(...sortedParams);
 
@@ -118,57 +119,38 @@ export const generateRequestHandler = (
  * @param req
  * @param res
  * @param next
- * @param paramsIndex
+ * @param customParamsData
  */
 const generateSortedParams = (
   req: any,
   res: Response,
   next: NextFunction,
-  paramsIndex: IParamsMetaData | any
+  customParamsData: IParamsMetaData[]
 ): any => {
-  const { body, params, query, file, files } = req;
+
+
 
   const sortedParams: { weight: number; value: any; key?: string }[] = [
     {
       value: req,
-      weight: 100,
+      weight: 1000,
     },
     {
       value: res,
-      weight: 101,
+      weight: 1001,
     },
     {
       value: next,
-      weight: 102,
+      weight: 1002,
     },
   ];
 
-  Object.keys(paramsIndex)
-    .filter((item) => paramsIndex[item] !== undefined)
-    .forEach((key) => {
-      let value: any = null;
-      if (key === "bodyIndex") {
-        value = body;
-      }
-      if (key === "paramsIndex") {
-        value = params;
-      }
-      if (key === "queryIndex") {
-        value = query;
-      }
-      if (key === "fileIndex") {
-        value = file;
-      }
-      if (key === "filesIndex") {
-        value = files;
-      }
-
-      sortedParams.push({
-        weight: paramsIndex[key],
-        value,
-        key,
-      });
-    });
+  customParamsData.forEach(item => {
+    sortedParams.push({
+      weight : item.parameterIndex,
+      value : getValueFromObjectKey(req, item.path)
+    })
+  })
 
   sortedParams.sort((a, b) => a.weight - b.weight);
   const finalParams = sortedParams.map((item) => item.value);

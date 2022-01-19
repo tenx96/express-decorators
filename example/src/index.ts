@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import express from "express";
-import { combineControllers, } from "express-decorators";
+import { combineControllers, } from "pretty-express";
 import { DemoController } from "./SampleController";
 
 const app = express();

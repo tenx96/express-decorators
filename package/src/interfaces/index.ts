@@ -2,23 +2,23 @@ import { NextFunction, Request, Response } from "express";
 import { HTTP_METHOD } from "../decorators/meta-keys";
 
 export interface IParamsMetaData {
-  bodyIndex: number | undefined;
-  paramsIndex: number | undefined;
-  queryIndex: number | undefined;
-  fileIndex: number | undefined;
-  filesIndex: number | undefined;
+  path : string,
+  parameterIndex : number
 }
+
+
 
 export interface IFunctionMetaData {
   method: HTTP_METHOD;
   path: string;
   methodName: string;
   errorMiddlewares: IErrorMiddleware[];
-  paramsMetadata: IParamsMetaData;
   customMiddlewares?: {
     builder: (...args: any[]) => IMiddleware;
     args: any[];
   }[];
+
+  customParameters?: IParamsMetaData[];
 }
 
 export interface IControllerMetadata {

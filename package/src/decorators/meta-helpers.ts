@@ -1,9 +1,8 @@
 import {
   IControllerMetadata,
   IFunctionMetaData,
-  IParamsMetaData,
 } from "../interfaces";
-import { getCustomMiddlewareData } from "./generated/generator";
+import { getCustomMiddlewareData } from "./generated/methodGenerator";
 import * as META_KEYS from "./meta-keys";
 import { HTTP_METHOD } from "./meta-keys";
 // SETTERS --------------------------------------------------------------------
@@ -74,14 +73,6 @@ export const setClassMetadata = (baseUrl: string, target: Object) => {
   Reflect.defineMetadata(META_KEYS.ROUTER_URL_KEY, baseUrl, target);
 };
 
-export const setParamMetadata = (
-  paramType: META_KEYS.PARAM_TYPE,
-  target: Object,
-  key: string | symbol,
-  parameterIndex: number
-) => {
-  Reflect.defineMetadata(paramType, parameterIndex, target, key);
-};
 
 // GETTERS --------------------------------------------------------------------
 
@@ -115,15 +106,18 @@ export const getMethodMetadata = (target: Object): IFunctionMetaData[] => {
         properyName
       ) || [];
 
+    const customParameters = Reflect.getOwnMetadata(META_KEYS.CUSTOM_PARAMETER_LIST_KEY, prototype, properyName) || [];
+
+
     const customMiddlewares =
       getCustomMiddlewareData(prototype, properyName) || [];
     data.push({
       method,
       path,
       methodName: properyName,
-      paramsMetadata: getParamMetaData(prototype, properyName),
       errorMiddlewares,
       customMiddlewares,
+      customParameters,
     });
   });
 
@@ -137,44 +131,6 @@ export const getMethodMetadata = (target: Object): IFunctionMetaData[] => {
  * @returns fetches the index of decorated function params if available
  *
  */
-export const getParamMetaData = (
-  target: Object,
-  key: string
-): IParamsMetaData => {
-  const bodyIndex = Reflect.getOwnMetadata(
-    META_KEYS.PARAM_TYPE.BODY,
-    target,
-    key
-  );
-  const paramsIndex = Reflect.getOwnMetadata(
-    META_KEYS.PARAM_TYPE.PARAMS,
-    target,
-    key
-  );
-  const queryIndex = Reflect.getOwnMetadata(
-    META_KEYS.PARAM_TYPE.QUERY,
-    target,
-    key
-  );
-  const fileIndex = Reflect.getOwnMetadata(
-    META_KEYS.PARAM_TYPE.FILE,
-    target,
-    key
-  );
-  const filesIndex = Reflect.getOwnMetadata(
-    META_KEYS.PARAM_TYPE.FILES,
-    target,
-    key
-  );
-
-  return {
-    bodyIndex,
-    paramsIndex,
-    queryIndex,
-    fileIndex,
-    filesIndex,
-  };
-};
 
 /**
  *
