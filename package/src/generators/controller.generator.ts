@@ -5,9 +5,7 @@ import {
   getMethodMetadata,
 } from "../decorators/meta-helpers";
 import { IMiddleware, IParamsMetaData } from "../interfaces";
-import {
-  defaultHttpErrorMiddleware,
-} from "../middlewares";
+import { defaultHttpErrorMiddleware } from "../middlewares";
 import { HttpResponse } from "../models";
 
 /**
@@ -28,7 +26,7 @@ export const combineControllers = (
     router.use(generateRouter(item));
   });
 
-// set default http errors | errors of type HttpErrorResponse
+  // set default http errors | errors of type HttpErrorResponse
   if (!options || (options && !options.skipDefaultHttpErrorMiddleware)) {
     router.use(defaultHttpErrorMiddleware);
   }
@@ -42,7 +40,6 @@ export const generateRouter = (controller: any) => {
   const funcData = getMethodMetadata(controller);
   const classData = getClassMetadata(controller);
 
-
   // CURRENT MIDDLEWARE ORDER --> CUSTOM --> VALIDATION --> MIDDLEWARES
 
   // insert custom middlewares
@@ -53,7 +50,6 @@ export const generateRouter = (controller: any) => {
     router.use(...customMiddlewares);
   }
 
-
   funcData.forEach((item) => {
     const funcName: any = item.methodName;
 
@@ -61,7 +57,12 @@ export const generateRouter = (controller: any) => {
     let customMiddlewares: IMiddleware[] = [];
     if (item.customMiddlewares && item.customMiddlewares.length > 0) {
       item.customMiddlewares.forEach((item) => {
-        customMiddlewares.push(item.builder(item.args));
+        const val = item.builder(item.args);
+        if (Array.isArray(val)) {
+          customMiddlewares.push(...val);
+        } else {
+          customMiddlewares.push(val);
+        }
       });
     }
 
@@ -74,7 +75,6 @@ export const generateRouter = (controller: any) => {
       ...[item.errorMiddlewares]
     );
   });
-
 
   // Class level error middlewares marked with @errMiddleware
   if (classData.errorMiddlewares.length !== 0) {
@@ -127,9 +127,6 @@ const generateSortedParams = (
   next: NextFunction,
   customParamsData: IParamsMetaData[]
 ): any => {
-
-
-
   const sortedParams: { weight: number; value: any; key?: string }[] = [
     {
       value: req,
@@ -145,12 +142,12 @@ const generateSortedParams = (
     },
   ];
 
-  customParamsData.forEach(item => {
+  customParamsData.forEach((item) => {
     sortedParams.push({
-      weight : item.parameterIndex,
-      value : getValueFromObjectKey(req, item.path)
-    })
-  })
+      weight: item.parameterIndex,
+      value: getValueFromObjectKey(req, item.path),
+    });
+  });
 
   sortedParams.sort((a, b) => a.weight - b.weight);
   const finalParams = sortedParams.map((item) => item.value);

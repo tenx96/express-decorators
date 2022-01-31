@@ -1,3 +1,4 @@
+import { IMiddlewareBuilder } from "decorators/generated/methodGenerator";
 import { NextFunction, Request, Response } from "express";
 import { HTTP_METHOD } from "../decorators/meta-keys";
 
@@ -14,7 +15,7 @@ export interface IFunctionMetaData {
   methodName: string;
   errorMiddlewares: IErrorMiddleware[];
   customMiddlewares?: {
-    builder: (...args: any[]) => IMiddleware;
+    builder: IMiddlewareBuilder<any[]>;
     args: any[];
   }[];
 

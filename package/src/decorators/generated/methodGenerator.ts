@@ -1,12 +1,13 @@
 import { IMiddleware } from "../../interfaces/base.interface";
 import * as META_KEYS from "../meta-keys";
-export type IMethodDecorator<T extends any[]> = (args: T) => IMiddleware;
-
+export type IMiddlewareBuilder<T extends any[]> = (
+  args: T
+) => IMiddleware | IMiddleware[];
 
 // set custom middleware data to handler
 const setCustomMiddlewareData = <T extends any[]>(
   target: Object,
-  builder: IMethodDecorator<T>,
+  builder: IMiddlewareBuilder<T>,
   args: any[],
   propertyKey?: string | symbol
 ) => {
@@ -28,7 +29,6 @@ const setCustomMiddlewareData = <T extends any[]>(
   }
 };
 
-
 // push a list of middlewares to custom middleware data
 const setCustomMiddlareFromList = (
   target: Object,
@@ -38,7 +38,12 @@ const setCustomMiddlareFromList = (
   let arr: any[] = getCustomMiddlewareData(target, propertyKey) || [];
 
   middlewares.forEach((item) => {
-    arr.push(item);
+    // item is a generic middleware which require no args
+
+    arr.push({
+      args: [],
+      builder: () => item,
+    });
   });
 
   if (propertyKey) {
@@ -52,7 +57,6 @@ const setCustomMiddlareFromList = (
     Reflect.defineMetadata(META_KEYS.CUSTOM_MIDDL_LIST_KEY, arr, target);
   }
 };
-
 
 // get middlewares data
 export const getCustomMiddlewareData = (
@@ -75,17 +79,9 @@ export const getCustomMiddlewareData = (
 };
 
 export const createMiddlewareDecorator =
-  <T extends any[]>(middlewareBuilder: IMethodDecorator<T> | IMiddleware[]) =>
+  <T extends any[]>(middlewareBuilder: IMiddlewareBuilder<T>) =>
   (...args: T) => {
     return (target: Object, propertyKey?: string | symbol) => {
-      if (!Array.isArray(middlewareBuilder)) {
-        
-        // if args is a builder create a middleware with it and push it
-        setCustomMiddlewareData<T>(target, middlewareBuilder, args, propertyKey);
-
-      } else {
-        // if args is a list of middlewares push it
-        setCustomMiddlareFromList(target, middlewareBuilder, propertyKey);
-      }
+      setCustomMiddlewareData<T>(target, middlewareBuilder, args, propertyKey);
     };
   };
