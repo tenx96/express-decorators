@@ -4,7 +4,20 @@ A typescript library to write express Controllers and Middlewares.
 
 pretty-express also provides versatility by providing methods to write your own decorator middlewares which can be used to encapsulate complicated middlewares behind simple/readable decorators.
 
-Check this section for more > Building your own middlewares
+See this section on [custom middlewares](#writing-your-own-custom-parameter-decorator)
+
+## Sections 
+
+[Creating a controller](#api-details) <br>
+[Route Decorators](#route-decorators) <br>
+[Middleware Decorators](#middleware-decorator) <br>
+[Returning a response](#returning-a-response) <br>
+[Parameter Decorators](#parameter-decorators) <br>
+[Custom Middleware decorator](#writing-your-own-middleware-decorator) <br>
+[Custom Parameter decorator](#writing-your-own-custom-parameter-decorator) <br>
+[Order of middleware execution](#order-of-middleware-execution) <br>
+
+
 
 **Setup your typescript project and install pretty express**
 
@@ -114,7 +127,7 @@ export class UserController {
 }
 ```
 
-**Route Decorators**
+## Route Decorators
 | Decorators | Function |
 |--|--|
 `@get(path : string)` |create a GET route on specified path |
@@ -122,7 +135,7 @@ export class UserController {
 |`@patch(path : string)` |create a PATCH route on specified path|
 |`@del(path : string)`|create a DELETE route on specified path|
 
-**The @middleware decorator**
+## Middleware decorator
 Adds a middleware/s to a route,
 accepts one or multiple middlewares as an argument
 
